@@ -3,7 +3,9 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.100+-009688.svg)](https://fastapi.tiangolo.com)
-[![Platform: Web](https://img.shields.io/badge/Platform-Web-cyan.svg)](#deployment)
+[![Live Platform](https://img.shields.io/badge/Live_Demo-Render-06b6d4?style=flat&logo=render)](https://hawkeye-quantum.onrender.com)
+
+> 🚀 **Live Interactive Dashboard:** [https://hawkeye-quantum.onrender.com](https://hawkeye-quantum.onrender.com)
 
 **HawkEye** is an open-source, high-performance simulation engine and diagnostic web platform engineered to model, analyze, and benchmark multipartite quantum entanglement distribution over star networks. 
 
