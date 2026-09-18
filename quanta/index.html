@@ -215,6 +215,30 @@
                     </div>
                 </div>
             </div>
+
+            <!-- Numerical Density Matrix Viewer -->
+            <div class="bg-[#0b0f1d] border border-slate-800 rounded-2xl p-5 shadow-2xl space-y-4">
+                <div class="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-slate-800">
+                    <div>
+                        <h3 class="text-sm font-bold tracking-wide text-slate-200 uppercase flex items-center gap-2">
+                            <svg class="w-4 h-4 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"/></svg>
+                            Full Density Matrix Inspector &rho;
+                        </h3>
+                        <p class="text-xs text-slate-400">Computational basis projection &lang;i|&rho;|j&rang;</p>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span id="matrixDimBadge" class="text-[10px] font-mono text-cyan-300 bg-cyan-950/60 border border-cyan-800/80 px-2.5 py-1 rounded-lg">Dim: --</span>
+                        <button type="button" id="copyMatrixBtn" class="px-3 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 text-xs font-mono rounded-lg transition-all flex items-center gap-1.5">
+                            <svg class="w-3.5 h-3.5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+                            Copy Matrix
+                        </button>
+                    </div>
+                </div>
+
+                <div id="matrixContainer" class="w-full overflow-x-auto overflow-y-auto max-h-[420px] bg-[#05070e] border border-slate-900 rounded-xl p-3 scrollbar-thin scrollbar-thumb-slate-700">
+                    <div class="text-xs font-mono text-slate-500 text-center py-8">Run a simulation to inspect numerical elements.</div>
+                </div>
+            </div>
         </div>
     </main>
 
@@ -342,6 +366,7 @@
 
                 latestDensityMatrix = data.density_matrix;
                 renderPlots(latestDensityMatrix);
+                renderMatrixTable(latestDensityMatrix);
 
             } catch (err) {
                 errorBox.innerText = err.message;
@@ -443,6 +468,88 @@
             window.dispatchEvent(new Event('resize'));
         }
 
+        function renderMatrixTable(dm) {
+            const container = document.getElementById('matrixContainer');
+            const badge = document.getElementById('matrixDimBadge');
+
+            if (!dm || !dm.real || parseInt(linkInput.value) > 5) {
+                badge.innerText = `Dim: 2^${linkInput.value} × 2^${linkInput.value}`;
+                container.innerHTML = `
+                    <div class="p-6 text-center font-mono text-xs text-slate-400 space-y-2">
+                        <div class="text-cyan-400 font-bold text-sm">Large-Scale Analytical Sparse Representation</div>
+                        <p class="text-slate-300">Explicit evaluation skipped for dimension 2<sup>${linkInput.value}</sup> &times; 2<sup>${linkInput.value}</sup> to prevent client memory stall.</p>
+                        <div class="inline-block text-left bg-slate-900/80 p-3 rounded-lg border border-slate-800 mt-2">
+                            <div>&rho;<sub>00...0, 00...0</sub> = <span class="text-emerald-400">${dm.population !== undefined ? dm.population : 0.5}</span></div>
+                            <div>&rho;<sub>11...1, 11...1</sub> = <span class="text-emerald-400">${dm.population !== undefined ? dm.population : 0.5}</span></div>
+                            <div>&rho;<sub>00...0, 11...1</sub> = <span class="text-cyan-400">&plusmn;${dm.coherence_term !== undefined ? dm.coherence_term : '--'}</span></div>
+                            <div>&rho;<sub>11...1, 00...0</sub> = <span class="text-cyan-400">&plusmn;${dm.coherence_term !== undefined ? dm.coherence_term : '--'}</span></div>
+                            <div class="text-slate-500 mt-1">All other matrix elements = 0.0000</div>
+                        </div>
+                    </div>`;
+                return;
+            }
+
+            const real = dm.real;
+            const imag = dm.imag;
+            const n = real.length;
+            const numQubits = Math.round(Math.log2(n));
+            badge.innerText = `Dim: ${n} × ${n} (${numQubits} Qubits)`;
+
+            let html = `<table class="border-collapse font-mono text-[11px] w-full text-center select-all">`;
+            
+            // Header Row: Basis states |000>, |001>, ...
+            html += `<thead><tr class="border-b border-slate-800 text-slate-500">`;
+            html += `<th class="p-2 border-r border-slate-800 bg-[#090d1a] sticky left-0 z-20 text-slate-400">|i&rang; \\ |j&rang;</th>`;
+            for (let j = 0; j < n; j++) {
+                const bin = j.toString(2).padStart(numQubits, '0');
+                html += `<th class="p-2 min-w-[95px] text-slate-400">|${bin}&rang;</th>`;
+            }
+            html += `</tr></thead><tbody>`;
+
+            // Table Rows
+            for (let i = 0; i < n; i++) {
+                const rowBin = i.toString(2).padStart(numQubits, '0');
+                html += `<tr class="border-b border-slate-900/80 hover:bg-slate-900/40 transition-colors">`;
+                html += `<th class="p-2 border-r border-slate-800 bg-[#090d1a] sticky left-0 z-10 text-slate-400 font-semibold">|${rowBin}&rang;</th>`;
+                
+                for (let j = 0; j < n; j++) {
+                    const r = real[i][j];
+                    const im = imag[i][j];
+                    const isZero = Math.abs(r) < 1e-6 && Math.abs(im) < 1e-6;
+                    
+                    let cellColor = "text-slate-600";
+                    let weight = "font-normal";
+
+                    if (!isZero) {
+                        if (i === j) {
+                            cellColor = "text-emerald-400"; // Diagonal populations
+                            weight = "font-bold";
+                        } else {
+                            cellColor = "text-cyan-400";    // Coherences
+                            weight = "font-medium";
+                        }
+                    }
+
+                    // Format as standard complex notation: a + bi
+                    let valStr = "";
+                    if (isZero) {
+                        valStr = "0";
+                    } else if (Math.abs(im) < 1e-6) {
+                        valStr = r.toFixed(4);
+                    } else if (Math.abs(r) < 1e-6) {
+                        valStr = `${im.toFixed(4)}i`;
+                    } else {
+                        valStr = `${r.toFixed(4)}${im >= 0 ? '+' : ''}${im.toFixed(4)}i`;
+                    }
+
+                    html += `<td class="p-2 ${cellColor} ${weight} whitespace-nowrap">${valStr}</td>`;
+                }
+                html += `</tr>`;
+            }
+            html += `</tbody></table>`;
+            container.innerHTML = html;
+        }
+
         // Export Event Listeners
         document.getElementById('exportJsonBtn').onclick = () => {
             if (!lastSimulationPayload) {
@@ -488,6 +595,34 @@
             a.href = encodedUri;
             a.download = `hawkeye_state_L${lastSimulationPayload.link}.csv`;
             a.click();
+        };
+
+        // Copy Matrix to Clipboard
+        document.getElementById('copyMatrixBtn').onclick = () => {
+            if (!lastSimulationPayload || !lastSimulationPayload.density_matrix) {
+                alert("Run a simulation first!");
+                return;
+            }
+            const dm = lastSimulationPayload.density_matrix;
+            let text = "";
+            if (dm.real) {
+                for (let i = 0; i < dm.real.length; i++) {
+                    const row = dm.real[i].map((r, j) => {
+                        const im = dm.imag[i][j];
+                        if (Math.abs(im) < 1e-6) return r.toFixed(4);
+                        return `${r.toFixed(4)}${im >= 0 ? '+' : ''}${im.toFixed(4)}j`;
+                    });
+                    text += row.join('\t') + '\n';
+                }
+            } else {
+                text = `L=${lastSimulationPayload.link} Analytical State:\nPopulations = ${dm.population !== undefined ? dm.population : 0.5}\nCoherence = ${dm.coherence_term}`;
+            }
+            navigator.clipboard.writeText(text).then(() => {
+                const btn = document.getElementById('copyMatrixBtn');
+                const orig = btn.innerHTML;
+                btn.innerHTML = `<span class="text-emerald-400 font-bold">Copied!</span>`;
+                setTimeout(() => btn.innerHTML = orig, 1500);
+            });
         };
 
         window.addEventListener('DOMContentLoaded', () => {
