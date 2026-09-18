@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HawkEye | Quantum Network Architecture Suite</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;800&family=Inter:wght@300;400;600;700&display=swap">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .font-mono { font-family: 'JetBrains Mono', monospace; }
+    </style>
+</head>
+<body class="bg-[#05070e] text-slate-100 min-h-screen flex flex-col antialiased selection:bg-cyan-500 selection:text-black">
+
+    <!-- Top Navigation -->
+    <header class="border-b border-slate-800/80 bg-[#090d1a]/80 backdrop-blur-md px-8 py-3 flex items-center justify-between sticky top-0 z-50">
+        <div class="flex items-center space-x-4">
+            <!-- HawkEye Custom Vector Emblem -->
+            <div class="relative w-11 h-11 flex items-center justify-center">
+                <svg viewBox="0 0 100 100" class="w-full h-full drop-shadow-[0_0_12px_rgba(6,182,212,0.7)]">
+                    <ellipse cx="50" cy="50" rx="43" ry="18" fill="none" stroke="url(#cyanGrad)" stroke-width="2.5" transform="rotate(-28 50 50)" stroke-dasharray="6 3"/>
+                    <ellipse cx="50" cy="50" rx="43" ry="18" fill="none" stroke="url(#indigoGrad)" stroke-width="2.5" transform="rotate(32 50 50)"/>
+                    <path d="M 14 50 Q 50 18 86 50 Q 50 82 14 50 Z" fill="rgba(11, 19, 43, 0.85)" stroke="#38bdf8" stroke-width="2.2"/>
+                    <circle cx="50" cy="50" r="8" fill="#06b6d4" class="animate-pulse"/>
+                    <circle cx="50" cy="50" r="3" fill="#ffffff"/>
+                    <defs>
+                        <linearGradient id="cyanGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" stop-color="#22d3ee" />
+                            <stop offset="100%" stop-color="#0284c7" />
+                        </linearGradient>
+                        <linearGradient id="indigoGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" stop-color="#818cf8" />
+                            <stop offset="100%" stop-color="#4f46e5" />
+                        </linearGradient>
+                    </defs>
+                </svg>
+            </div>
+            <div>
+                <div class="flex items-center space-x-2">
+                    <span class="text-xl font-extrabold tracking-widest bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 via-sky-200 to-indigo-400 font-mono">
+                        HAWKEYE
+                    </span>
+                    <span class="text-[10px] px-2 py-0.5 rounded-full border border-cyan-500/40 text-cyan-300 bg-cyan-950/60 font-mono font-semibold">
+                        v2.0 PRO
+                    </span>
+                </div>
+                <span class="block text-[10px] uppercase tracking-widest text-slate-400 font-semibold -mt-0.5">
+                    Quantum Entanglement Swapping Engine
+                </span>
+            </div>
+        </div>
+
+        <div class="flex items-center space-x-6 text-xs font-mono text-slate-400">
+            <div class="flex items-center space-x-2">
+                <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+                <span class="text-slate-300">CORE ONLINE</span>
+            </div>
+            <span class="text-slate-700">|</span>
+            <span>TOPOLOGY: STAR NETWORK</span>
+        </div>
+    </header>
+
+    <!-- Main Grid -->
+    <main class="flex-1 grid grid-cols-1 xl:grid-cols-12 gap-6 p-6 max-w-[1800px] w-full mx-auto">
+        
+        <!-- Left: Telemetry & Controls -->
+        <div class="xl:col-span-4 space-y-6">
+            
+            <!-- Network Topology Visualizer Canvas -->
+            <div class="bg-[#0b0f1d] border border-slate-800 rounded-2xl p-5 shadow-2xl relative overflow-hidden">
+                <div class="flex justify-between items-center mb-3">
+                    <h3 class="text-xs font-bold uppercase tracking-wider text-slate-300 flex items-center gap-2">
+                        <svg class="w-4 h-4 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                        Live Topology Map
+                    </h3>
+                    <span id="topoStatus" class="text-[10px] font-mono text-cyan-400 bg-cyan-950/40 border border-cyan-800/60 px-2 py-0.5 rounded">3 Links Active</span>
+                </div>
+                <div class="h-52 w-full bg-[#05070e] border border-slate-900 rounded-xl flex items-center justify-center relative">
+                    <svg id="networkSvg" class="w-full h-full"></svg>
+                </div>
+            </div>
+
+            <!-- Configuration Form -->
+            <div class="bg-[#0b0f1d] border border-slate-800 rounded-2xl p-6 shadow-2xl space-y-5">
+                <div>
+                    <h2 class="text-sm font-bold uppercase tracking-wider text-slate-200">Execution Parameters</h2>
+                    <p class="text-xs text-slate-400 mt-0.5">Control circuit compilation and channel decoherence.</p>
+                </div>
+
+                <form id="simForm" class="space-y-4">
+                    <!-- Protocol Selection -->
+                    <div>
+                        <label class="block text-[11px] font-semibold uppercase tracking-wider text-slate-400 mb-1.5">Architecture Model</label>
+                        <div class="grid grid-cols-2 gap-3">
+                            <label class="flex items-center justify-center p-3 rounded-xl border border-slate-800 bg-slate-900/50 cursor-pointer hover:border-slate-700 transition-all has-[:checked]:border-cyan-500 has-[:checked]:bg-cyan-950/20 has-[:checked]:text-cyan-300">
+                                <input type="radio" name="protocol" value="factory" class="hidden" checked>
+                                <span class="text-xs font-bold tracking-wide">Factory (Parallel)</span>
+                            </label>
+                            <label class="flex items-center justify-center p-3 rounded-xl border border-slate-800 bg-slate-900/50 cursor-pointer hover:border-slate-700 transition-all has-[:checked]:border-cyan-500 has-[:checked]:bg-cyan-950/20 has-[:checked]:text-cyan-300">
+                                <input type="radio" name="protocol" value="piecemaker" class="hidden">
+                                <span class="text-xs font-bold tracking-wide">PieceMaker (Seq)</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Number of Links -->
+                    <div>
+                        <div class="flex justify-between items-center text-[11px] font-semibold uppercase tracking-wider text-slate-400 mb-1">
+                            <span>Bell Pair Links (L)</span>
+                            <input type="number" id="link" min="2" max="1000" value="3" class="w-20 bg-[#05070e] border border-slate-700 rounded px-2 py-1 text-cyan-400 font-mono text-sm text-right focus:border-cyan-500 outline-none">
+                        </div>
+                        <span class="text-[10px] text-slate-500 block -mt-0.5">Supports arbitrary links (e.g. 50, 100). Analytical mode activates for L > 8.</span>
+                    </div>
+
+                    <!-- Dephasing Toggle -->
+                    <div class="pt-3 border-t border-slate-800/80">
+                        <div class="flex items-center justify-between">
+                            <label class="text-[11px] font-semibold uppercase tracking-wider text-slate-400 cursor-pointer" for="dephasing">
+                                Memory Dephasing ($\Lambda$)
+                            </label>
+                            <input type="checkbox" id="dephasing" class="w-4 h-4 accent-cyan-500 rounded cursor-pointer bg-slate-900 border-slate-700">
+                        </div>
+                    </div>
+
+                    <!-- Dephasing Inputs -->
+                    <div id="dephasingParams" class="space-y-3 opacity-40 pointer-events-none transition-all duration-200">
+                        <div>
+                            <div class="flex justify-between items-center text-[11px] text-slate-400 mb-1">
+                                <span>Coherence Parameter &Lambda;</span>
+                                <span id="lambdaValue" class="text-cyan-400 font-mono">0.95</span>
+                            </div>
+                            <input type="range" id="Lambda" min="0.0" max="1.0" step="0.01" value="0.95" class="w-full accent-cyan-400 bg-slate-800 h-1.5 rounded-lg cursor-pointer">
+                        </div>
+                        <div>
+                            <label class="block text-[11px] text-slate-400 mb-1">Link Creation Rounds (Comma-separated)</label>
+                            <input type="text" id="rounds" value="1, 4, 2" class="w-full bg-[#05070e] border border-slate-800 rounded-lg px-3 py-2 text-xs font-mono text-cyan-300 focus:outline-none focus:border-cyan-500">
+                        </div>
+                    </div>
+
+                    <!-- Trigger Button -->
+                    <button type="button" id="runBtn" class="w-full py-3 bg-gradient-to-r from-cyan-600 via-sky-600 to-indigo-600 hover:from-cyan-500 hover:to-indigo-500 text-white font-bold text-xs uppercase tracking-wider rounded-xl shadow-lg shadow-cyan-950/60 transition-all flex justify-center items-center">
+                        <span id="btnText">Simulate Protocol</span>
+                    </button>
+                </form>
+
+                <div id="errorBox" class="hidden p-3.5 rounded-xl bg-rose-950/50 border border-rose-800 text-xs text-rose-300 font-mono"></div>
+            </div>
+        </div>
+
+        <!-- Right: Diagnostic Visualizations & State Tomography -->
+        <div class="xl:col-span-8 space-y-6">
+            
+            <!-- Output Metrics Banner -->
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                <div class="bg-[#0b0f1d] border border-slate-800 rounded-2xl p-4 shadow-xl">
+                    <div class="text-[11px] font-mono uppercase tracking-wider text-slate-400">Target Fidelity</div>
+                    <div id="metricFid" class="text-2xl font-black font-mono text-cyan-400 mt-1">--</div>
+                </div>
+                <div class="bg-[#0b0f1d] border border-slate-800 rounded-2xl p-4 shadow-xl">
+                    <div class="text-[11px] font-mono uppercase tracking-wider text-slate-400">State Purity Tr(&rho;²)</div>
+                    <div id="metricPurity" class="text-2xl font-black font-mono text-slate-200 mt-1">--</div>
+                </div>
+                <div class="bg-[#0b0f1d] border border-slate-800 rounded-2xl p-4 shadow-xl">
+                    <div class="text-[11px] font-mono uppercase tracking-wider text-slate-400">Hilbert Dim</div>
+                    <div id="metricDim" class="text-2xl font-black font-mono text-slate-200 mt-1">--</div>
+                </div>
+                <div class="bg-[#0b0f1d] border border-slate-800 rounded-2xl p-4 shadow-xl">
+                    <div class="text-[11px] font-mono uppercase tracking-wider text-slate-400">Hermiticity</div>
+                    <div id="metricHerm" class="text-2xl font-black font-mono text-emerald-400 mt-1">--</div>
+                </div>
+            </div>
+
+            <!-- Quantum State Tomography Plots -->
+            <div class="bg-[#0b0f1d] border border-slate-800 rounded-2xl p-5 shadow-2xl space-y-4">
+                <div class="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-slate-800">
+                    <div>
+                        <h3 class="text-sm font-bold tracking-wide text-slate-200 uppercase">Quantum State Tomography</h3>
+                        <p class="text-xs text-slate-400">Full density matrix reconstruction</p>
+                    </div>
+                    <!-- 2D / 3D Switcher -->
+                    <div class="flex items-center space-x-1 bg-[#05070e] p-1 border border-slate-800 rounded-xl">
+                        <button id="view2dBtn" class="px-3 py-1 rounded-lg text-xs font-mono font-bold transition-all bg-cyan-600 text-white shadow">2D Planar</button>
+                        <button id="view3dBtn" class="px-3 py-1 rounded-lg text-xs font-mono font-bold transition-all text-slate-400 hover:text-slate-200">3D Surface</button>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div class="bg-[#05070e] border border-slate-900 rounded-xl p-3">
+                        <div class="text-[11px] font-mono font-semibold uppercase tracking-wider text-cyan-400 mb-1">Re(&rho;) - Real Amplitudes</div>
+                        <div id="realPlot" class="h-80 w-full"></div>
+                    </div>
+                    <div class="bg-[#05070e] border border-slate-900 rounded-xl p-3">
+                        <div class="text-[11px] font-mono font-semibold uppercase tracking-wider text-indigo-400 mb-1">Im(&rho;) - Coherences</div>
+                        <div id="imagPlot" class="h-80 w-full"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        let currentPlotMode = '2d';
+        let latestDensityMatrix = null;
+
+        const linkInput = document.getElementById('link');
+        const linkValue = document.getElementById('linkValue');
+        const dephasingCheck = document.getElementById('dephasing');
+        const dephasingParams = document.getElementById('dephasingParams');
+        const lambdaInput = document.getElementById('Lambda');
+        const lambdaValue = document.getElementById('lambdaValue');
+        const errorBox = document.getElementById('errorBox');
+        const runBtn = document.getElementById('runBtn');
+        const view2dBtn = document.getElementById('view2dBtn');
+        const view3dBtn = document.getElementById('view3dBtn');
+
+        // Draw Interactive SVG Star Topology
+        function drawTopology(linkCount) {
+            const svg = document.getElementById('networkSvg');
+            svg.innerHTML = '';
+            const cx = 175, cy = 105, radius = 75;
+
+            // Hub router node
+            const hub = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+            hub.setAttribute('cx', cx);
+            hub.setAttribute('cy', cy);
+            hub.setAttribute('r', 10);
+            hub.setAttribute('fill', '#06b6d4');
+            hub.setAttribute('stroke', '#ffffff');
+            hub.setAttribute('stroke-width', '2');
+
+            // Render spoke links
+            for (let i = 0; i < linkCount; i++) {
+                const angle = (2 * Math.PI / linkCount) * i - Math.PI / 2;
+                const sx = cx + radius * Math.cos(angle);
+                const sy = cy + radius * Math.sin(angle);
+
+                const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                line.setAttribute('x1', cx);
+                line.setAttribute('y1', cy);
+                line.setAttribute('x2', sx);
+                line.setAttribute('y2', sy);
+                line.setAttribute('stroke', '#334155');
+                line.setAttribute('stroke-width', '2');
+                line.setAttribute('stroke-dasharray', '4 2');
+                svg.appendChild(line);
+
+                const spoke = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                spoke.setAttribute('cx', sx);
+                spoke.setAttribute('cy', sy);
+                spoke.setAttribute('r', 7);
+                spoke.setAttribute('fill', '#6366f1');
+                spoke.setAttribute('stroke', '#818cf8');
+                spoke.setAttribute('stroke-width', '1.5');
+                svg.appendChild(spoke);
+            }
+            svg.appendChild(hub);
+            document.getElementById('topoStatus').innerText = `${linkCount} Links Active`;
+        }
+
+        linkInput.oninput = () => {
+            const val = parseInt(linkInput.value) || 2;
+            if (val <= 50) {
+                document.getElementById('rounds').value = Array.from({length: val}, (_, i) => (i % 5) + 1).join(', ');
+            } else {
+                document.getElementById('rounds').value = Array.from({length: val}, () => 1).join(', ');
+            }
+            drawTopology(Math.min(val, 24));
+        };
+
+        lambdaInput.oninput = () => lambdaValue.innerText = parseFloat(lambdaInput.value).toFixed(2);
+
+        dephasingCheck.onchange = () => {
+            if (dephasingCheck.checked) {
+                dephasingParams.classList.remove('opacity-40', 'pointer-events-none');
+            } else {
+                dephasingParams.classList.add('opacity-40', 'pointer-events-none');
+            }
+        };
+
+        view2dBtn.onclick = () => {
+            currentPlotMode = '2d';
+            view2dBtn.className = "px-3 py-1 rounded-lg text-xs font-mono font-bold transition-all bg-cyan-600 text-white shadow";
+            view3dBtn.className = "px-3 py-1 rounded-lg text-xs font-mono font-bold transition-all text-slate-400 hover:text-slate-200";
+            if (latestDensityMatrix) renderPlots(latestDensityMatrix);
+        };
+
+        view3dBtn.onclick = () => {
+            currentPlotMode = '3d';
+            view3dBtn.className = "px-3 py-1 rounded-lg text-xs font-mono font-bold transition-all bg-cyan-600 text-white shadow";
+            view2dBtn.className = "px-3 py-1 rounded-lg text-xs font-mono font-bold transition-all text-slate-400 hover:text-slate-200";
+            if (latestDensityMatrix) renderPlots(latestDensityMatrix);
+        };
+
+        runBtn.onclick = async () => {
+            errorBox.classList.add('hidden');
+            runBtn.disabled = true;
+            document.getElementById('btnText').innerText = "Simulating...";
+
+            try {
+                const protocol = document.querySelector('input[name="protocol"]:checked').value;
+                const link = parseInt(linkInput.value);
+                const dephasing = dephasingCheck.checked;
+                const Lambda = parseFloat(lambdaInput.value);
+                const roundsStr = document.getElementById('rounds').value;
+                const rounds = dephasing ? roundsStr.split(',').map(x => parseInt(x.trim())) : null;
+
+                const res = await fetch("http://127.0.0.1:8000/api/simulate", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ protocol, link, dephasing, Lambda, rounds })
+                });
+
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.detail || "Simulation execution failed");
+
+                document.getElementById('metricFid').innerText = data.fidelity.toFixed(4);
+                document.getElementById('metricPurity').innerText = data.density_matrix.purity.toFixed(4);
+                document.getElementById('metricDim').innerText = data.density_matrix.shape.join(' × ');
+                document.getElementById('metricHerm').innerText = data.density_matrix.isherm ? "VALID" : "FALSE";
+
+                latestDensityMatrix = data.density_matrix;
+                renderPlots(latestDensityMatrix);
+
+            } catch (err) {
+                errorBox.innerText = err.message;
+                errorBox.classList.remove('hidden');
+            } finally {
+                runBtn.disabled = false;
+                document.getElementById('btnText').innerText = "Simulate Protocol";
+            }
+        };
+
+        function renderPlots(dm) {
+            const darkConfig = {
+                paper_bgcolor: 'rgba(0,0,0,0)',
+                plot_bgcolor: 'rgba(0,0,0,0)',
+                margin: { t: 15, b: 15, l: 25, r: 25 },
+                font: { color: '#94a3b8', family: 'JetBrains Mono', size: 9 },
+                xaxis: { showgrid: false },
+                yaxis: { showgrid: false, autorange: 'reversed' }
+            };
+
+            if (currentPlotMode === '2d') {
+                Plotly.newPlot('realPlot', [{
+                    z: dm.real,
+                    type: 'heatmap',
+                    colorscale: 'Viridis',
+                    zmin: -0.5,
+                    zmax: 0.5
+                }], darkConfig, { responsive: true, displayModeBar: false });
+
+                Plotly.newPlot('imagPlot', [{
+                    z: dm.imag,
+                    type: 'heatmap',
+                    colorscale: 'Magma',
+                    zmin: -0.5,
+                    zmax: 0.5
+                }], darkConfig, { responsive: true, displayModeBar: false });
+            } else {
+                const surfaceConfig = {
+                    paper_bgcolor: 'rgba(0,0,0,0)',
+                    margin: { t: 10, b: 10, l: 10, r: 10 },
+                    scene: {
+                        xaxis: { showgrid: true, gridcolor: '#1e293b' },
+                        yaxis: { showgrid: true, gridcolor: '#1e293b' },
+                        zaxis: { showgrid: true, gridcolor: '#1e293b', range: [-0.5, 0.5] }
+                    }
+                };
+
+                Plotly.newPlot('realPlot', [{
+                    z: dm.real,
+                    type: 'surface',
+                    colorscale: 'Viridis'
+                }], surfaceConfig, { responsive: true, displayModeBar: false });
+
+                Plotly.newPlot('imagPlot', [{
+                    z: dm.imag,
+                    type: 'surface',
+                    colorscale: 'Magma'
+                }], surfaceConfig, { responsive: true, displayModeBar: false });
+            }
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            drawTopology(3);
+            runBtn.click();
+        });
+    </script>
+</body>
+</html>
