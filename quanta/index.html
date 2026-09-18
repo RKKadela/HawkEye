@@ -114,14 +114,14 @@
                             <span>Bell Pair Links (L)</span>
                             <input type="number" id="link" min="2" max="1000" value="3" class="w-20 bg-[#05070e] border border-slate-700 rounded px-2 py-1 text-cyan-400 font-mono text-sm text-right focus:border-cyan-500 outline-none">
                         </div>
-                        <span class="text-[10px] text-slate-500 block -mt-0.5">Supports arbitrary links (e.g. 50, 100). Analytical mode activates for L > 8.</span>
+                        <span class="text-[10px] text-slate-500 block -mt-0.5">Supports arbitrary links (e.g. 50, 100). Analytical mode activates for L &gt; 5.</span>
                     </div>
 
                     <!-- Dephasing Toggle -->
                     <div class="pt-3 border-t border-slate-800/80">
                         <div class="flex items-center justify-between">
                             <label class="text-[11px] font-semibold uppercase tracking-wider text-slate-400 cursor-pointer" for="dephasing">
-                                Memory Dephasing ($\Lambda$)
+                                Memory Dephasing (&Lambda;)
                             </label>
                             <input type="checkbox" id="dephasing" class="w-4 h-4 accent-cyan-500 rounded cursor-pointer bg-slate-900 border-slate-700">
                         </div>
@@ -146,6 +146,18 @@
                     <button type="button" id="runBtn" class="w-full py-3 bg-gradient-to-r from-cyan-600 via-sky-600 to-indigo-600 hover:from-cyan-500 hover:to-indigo-500 text-white font-bold text-xs uppercase tracking-wider rounded-xl shadow-lg shadow-cyan-950/60 transition-all flex justify-center items-center">
                         <span id="btnText">Simulate Protocol</span>
                     </button>
+
+                    <!-- Export Options -->
+                    <div class="grid grid-cols-2 gap-3 pt-1">
+                        <button type="button" id="exportJsonBtn" class="py-2.5 px-3 bg-slate-800/80 hover:bg-slate-700 text-slate-200 border border-slate-700 font-mono text-[11px] font-semibold rounded-xl transition-all flex items-center justify-center gap-1.5">
+                            <svg class="w-3.5 h-3.5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                            Export JSON
+                        </button>
+                        <button type="button" id="exportCsvBtn" class="py-2.5 px-3 bg-slate-800/80 hover:bg-slate-700 text-slate-200 border border-slate-700 font-mono text-[11px] font-semibold rounded-xl transition-all flex items-center justify-center gap-1.5">
+                            <svg class="w-3.5 h-3.5 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                            Export CSV
+                        </button>
+                    </div>
                 </form>
 
                 <div id="errorBox" class="hidden p-3.5 rounded-xl bg-rose-950/50 border border-rose-800 text-xs text-rose-300 font-mono"></div>
@@ -162,7 +174,7 @@
                     <div id="metricFid" class="text-2xl font-black font-mono text-cyan-400 mt-1">--</div>
                 </div>
                 <div class="bg-[#0b0f1d] border border-slate-800 rounded-2xl p-4 shadow-xl">
-                    <div class="text-[11px] font-mono uppercase tracking-wider text-slate-400">State Purity Tr(&rho;²)</div>
+                    <div class="text-[11px] font-mono uppercase tracking-wider text-slate-400">State Purity Tr(&rho;&sup2;)</div>
                     <div id="metricPurity" class="text-2xl font-black font-mono text-slate-200 mt-1">--</div>
                 </div>
                 <div class="bg-[#0b0f1d] border border-slate-800 rounded-2xl p-4 shadow-xl">
@@ -192,11 +204,11 @@
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     <div class="bg-[#05070e] border border-slate-900 rounded-xl p-3">
                         <div class="text-[11px] font-mono font-semibold uppercase tracking-wider text-cyan-400 mb-1">Re(&rho;) - Real Amplitudes</div>
-                        <div id="realPlot" class="h-80 w-full"></div>
+                        <div id="realPlot" class="h-80 w-full flex items-center justify-center"></div>
                     </div>
                     <div class="bg-[#05070e] border border-slate-900 rounded-xl p-3">
                         <div class="text-[11px] font-mono font-semibold uppercase tracking-wider text-indigo-400 mb-1">Im(&rho;) - Coherences</div>
-                        <div id="imagPlot" class="h-80 w-full"></div>
+                        <div id="imagPlot" class="h-80 w-full flex items-center justify-center"></div>
                     </div>
                 </div>
             </div>
@@ -206,9 +218,9 @@
     <script>
         let currentPlotMode = '2d';
         let latestDensityMatrix = null;
+        let lastSimulationPayload = null;
 
         const linkInput = document.getElementById('link');
-        const linkValue = document.getElementById('linkValue');
         const dephasingCheck = document.getElementById('dephasing');
         const dephasingParams = document.getElementById('dephasingParams');
         const lambdaInput = document.getElementById('Lambda');
@@ -224,7 +236,7 @@
             svg.innerHTML = '';
             const cx = 175, cy = 105, radius = 75;
 
-            // Hub router node
+            // Central router hub
             const hub = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
             hub.setAttribute('cx', cx);
             hub.setAttribute('cy', cy);
@@ -259,7 +271,7 @@
                 svg.appendChild(spoke);
             }
             svg.appendChild(hub);
-            document.getElementById('topoStatus').innerText = `${linkCount} Links Active`;
+            document.getElementById('topoStatus').innerText = `${linkCount} Links Displayed`;
         }
 
         linkInput.oninput = () => {
@@ -309,7 +321,7 @@
                 const roundsStr = document.getElementById('rounds').value;
                 const rounds = dephasing ? roundsStr.split(',').map(x => parseInt(x.trim())) : null;
 
-                const res = await fetch("http://127.0.0.1:8000/api/simulate", {
+                const res = await fetch("/api/simulate", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ protocol, link, dephasing, Lambda, rounds })
@@ -317,6 +329,8 @@
 
                 const data = await res.json();
                 if (!res.ok) throw new Error(data.detail || "Simulation execution failed");
+
+                lastSimulationPayload = data;
 
                 document.getElementById('metricFid').innerText = data.fidelity.toFixed(4);
                 document.getElementById('metricPurity').innerText = data.density_matrix.purity.toFixed(4);
@@ -336,55 +350,139 @@
         };
 
         function renderPlots(dm) {
+            const realContainer = document.getElementById('realPlot');
+            const imagContainer = document.getElementById('imagPlot');
+
+            if (!dm || !dm.real || parseInt(linkInput.value) > 5) {
+                realContainer.innerHTML = `
+                    <div class="h-full flex flex-col items-center justify-center text-center p-4 text-slate-400 font-mono text-xs">
+                        <span class="text-cyan-400 text-sm font-bold mb-2">High-Dimensional Analytical Mode (L = ${linkInput.value})</span>
+                        <p>Hilbert space: 2<sup>${linkInput.value}</sup> &times; 2<sup>${linkInput.value}</sup></p>
+                        <p class="mt-2 text-slate-300">Populations |00...0⟩, |11...1⟩: <span class="text-white">${dm.population !== undefined ? dm.population : 0.5}</span></p>
+                        <p class="text-slate-300">Off-Diagonal Coherence: <span class="text-cyan-400">&plusmn;${dm.coherence_term !== undefined ? dm.coherence_term : '--'}</span></p>
+                    </div>`;
+                imagContainer.innerHTML = `
+                    <div class="h-full flex flex-col items-center justify-center text-center p-4 text-slate-400 font-mono text-xs">
+                        <span class="text-indigo-400 text-sm font-bold mb-2">Imaginary Component</span>
+                        <p class="text-slate-300">Im(&rho;) = 0.0</p>
+                        <span class="text-[10px] text-slate-500 mt-1">Phase reality preserved under pure dephasing channel</span>
+                    </div>`;
+                return;
+            }
+
+            const n = dm.shape[0];
             const darkConfig = {
                 paper_bgcolor: 'rgba(0,0,0,0)',
                 plot_bgcolor: 'rgba(0,0,0,0)',
-                margin: { t: 15, b: 15, l: 25, r: 25 },
-                font: { color: '#94a3b8', family: 'JetBrains Mono', size: 9 },
-                xaxis: { showgrid: false },
-                yaxis: { showgrid: false, autorange: 'reversed' }
+                margin: { t: 15, b: 25, l: 25, r: 25 },
+                font: { color: '#94a3b8', family: 'JetBrains Mono', size: 9 }
             };
 
             if (currentPlotMode === '2d') {
-                Plotly.newPlot('realPlot', [{
+                const heatmapLayout = {
+                    ...darkConfig,
+                    xaxis: { showgrid: false, ticks: '', zeroline: false },
+                    yaxis: { showgrid: false, ticks: '', zeroline: false, autorange: 'reversed' }
+                };
+
+                Plotly.react('realPlot', [{
                     z: dm.real,
                     type: 'heatmap',
                     colorscale: 'Viridis',
                     zmin: -0.5,
-                    zmax: 0.5
-                }], darkConfig, { responsive: true, displayModeBar: false });
+                    zmax: 0.5,
+                    showscale: n <= 16
+                }], heatmapLayout, { responsive: true, displayModeBar: false });
 
-                Plotly.newPlot('imagPlot', [{
+                Plotly.react('imagPlot', [{
                     z: dm.imag,
                     type: 'heatmap',
                     colorscale: 'Magma',
                     zmin: -0.5,
-                    zmax: 0.5
-                }], darkConfig, { responsive: true, displayModeBar: false });
+                    zmax: 0.5,
+                    showscale: n <= 16
+                }], heatmapLayout, { responsive: true, displayModeBar: false });
+
             } else {
-                const surfaceConfig = {
+                const surfaceLayout = {
                     paper_bgcolor: 'rgba(0,0,0,0)',
                     margin: { t: 10, b: 10, l: 10, r: 10 },
                     scene: {
-                        xaxis: { showgrid: true, gridcolor: '#1e293b' },
-                        yaxis: { showgrid: true, gridcolor: '#1e293b' },
-                        zaxis: { showgrid: true, gridcolor: '#1e293b', range: [-0.5, 0.5] }
+                        xaxis: { title: 'Col', showgrid: true, gridcolor: '#1e293b' },
+                        yaxis: { title: 'Row', showgrid: true, gridcolor: '#1e293b' },
+                        zaxis: { title: 'Amp', showgrid: true, gridcolor: '#1e293b', range: [-0.5, 0.5] },
+                        camera: { eye: { x: 1.4, y: 1.4, z: 1.2 } }
                     }
                 };
 
-                Plotly.newPlot('realPlot', [{
+                Plotly.react('realPlot', [{
                     z: dm.real,
                     type: 'surface',
-                    colorscale: 'Viridis'
-                }], surfaceConfig, { responsive: true, displayModeBar: false });
+                    colorscale: 'Viridis',
+                    cauto: false,
+                    cmin: -0.5,
+                    cmax: 0.5,
+                    showscale: false
+                }], surfaceLayout, { responsive: true, displayModeBar: false });
 
-                Plotly.newPlot('imagPlot', [{
+                Plotly.react('imagPlot', [{
                     z: dm.imag,
                     type: 'surface',
-                    colorscale: 'Magma'
-                }], surfaceConfig, { responsive: true, displayModeBar: false });
+                    colorscale: 'Magma',
+                    cauto: false,
+                    cmin: -0.5,
+                    cmax: 0.5,
+                    showscale: false
+                }], surfaceLayout, { responsive: true, displayModeBar: false });
             }
         }
+
+        // Export Event Listeners
+        document.getElementById('exportJsonBtn').onclick = () => {
+            if (!lastSimulationPayload) {
+                alert("Run a simulation first!");
+                return;
+            }
+            const blob = new Blob([JSON.stringify(lastSimulationPayload, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `hawkeye_${lastSimulationPayload.protocol}_L${lastSimulationPayload.link}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+        };
+
+        document.getElementById('exportCsvBtn').onclick = () => {
+            if (!lastSimulationPayload) {
+                alert("Run a simulation first!");
+                return;
+            }
+            let csvContent = "data:text/csv;charset=utf-8,";
+            
+            if (lastSimulationPayload.density_matrix.real) {
+                const real = lastSimulationPayload.density_matrix.real;
+                const imag = lastSimulationPayload.density_matrix.imag;
+                csvContent += "row,col,real_amplitude,imag_amplitude\n";
+                for (let r = 0; r < real.length; r++) {
+                    for (let c = 0; c < real[r].length; c++) {
+                        csvContent += `${r},${c},${real[r][c]},${imag[r][c]}\n`;
+                    }
+                }
+            } else {
+                csvContent += "metric,value\n";
+                csvContent += `protocol,${lastSimulationPayload.protocol}\n`;
+                csvContent += `links,${lastSimulationPayload.link}\n`;
+                csvContent += `fidelity,${lastSimulationPayload.fidelity}\n`;
+                csvContent += `purity,${lastSimulationPayload.density_matrix.purity}\n`;
+                csvContent += `coherence_term,${lastSimulationPayload.density_matrix.coherence_term}\n`;
+            }
+
+            const encodedUri = encodeURI(csvContent);
+            const a = document.createElement('a');
+            a.href = encodedUri;
+            a.download = `hawkeye_state_L${lastSimulationPayload.link}.csv`;
+            a.click();
+        };
 
         window.addEventListener('DOMContentLoaded', () => {
             drawTopology(3);
