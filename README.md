@@ -46,6 +46,7 @@ Quantum repeaters and central entanglement routers face memory decoherence when 
 ### Quantum Channel & Memory Dephasing Model
 
 For an elementary link $k$ generated at discrete round $r_k$, the waiting time prior to swapping is:
+
 $$w_k = t_{\max} - r_k, \quad \text{where } t_{\max} = \max_{j} \{ r_j \}$$
 
 Idle quantum memory dephasing is modeled via the single-qubit dephasing channel $\mathcal{E}_{\Lambda}^{(w_k)}$ with coherence parameter $\Lambda \in [0, 1]$:
@@ -53,25 +54,28 @@ Idle quantum memory dephasing is modeled via the single-qubit dephasing channel 
 $$\mathcal{E}_{\Lambda}^{(w)}(\rho) = \frac{1 + \Lambda^w}{2}\rho + \frac{1 - \Lambda^w}{2} Z \rho Z$$
 
 The Kraus representation of the channel acting on link $k$ is given by:
+
 $$K_0 = \sqrt{\frac{1 + \Lambda^{w_k}}{2}}\mathbb{I}, \quad K_1 = \sqrt{\frac{1 - \Lambda^{w_k}}{2}}Z$$
 
 ### Hybrid Computational Scaling Pipeline
 
-To balance full density matrix tomography with scalable high-$L$ network benchmarks, HawkEye implements a **two-tier computation engine**:
+To balance full density matrix tomography with scalable high-scale $L$ network benchmarks, HawkEye implements a **two-tier computation engine**:
 
-1. **Microscopic Tensor Contraction ($L \le 5$):**
-   * Constructs the full density matrix $\rho \in \mathbb{C}^{2^L \times 2^L}$.
-   * Explicitly evaluates projectors, Bell measurements, Kraus contractions, and partial traces.
-   * Renders full 2D and 3D state tomography (real amplitudes and imaginary coherences).
+#### 1. Microscopic Tensor Contraction ($L \le 5$)
 
-2. **Exact Channel Decomposition ($L > 5$):**
-   * Solves the diagonal and off-diagonal decay analytically to eliminate the $O(2^{2L})$ Hilbert space memory barrier:
+* Constructs the full density matrix $\rho \in \mathbb{C}^{2^L \times 2^L}$.
+* Explicitly evaluates projectors, Bell measurements, Kraus contractions, and partial traces.
+* Renders full 2D and 3D state tomography (real amplitudes and imaginary coherences).
 
-     $$\mathcal{F}_L = \langle \text{GHZ}_L | \rho | \text{GHZ}_L \rangle = \frac{1}{2}\left(1 + \prod_{k=1}^{L}\Lambda^{w_k}\right)$$
+#### 2. Exact Channel Decomposition ($L > 5$)
 
-     $$\text{Tr}(\rho^2) = \frac{1}{2} + \frac{1}{2}\left(\prod_{k=1}^{L}\Lambda^{w_k}\right)^2$$
+Solves the diagonal and off-diagonal decay analytically to eliminate the $\mathcal{O}(2^{2L})$ Hilbert space memory barrier:
 
-   * Evaluates exact metrics for $L = 50, 100, 1000$ links in under $1\,\text{ms}$.
+$$\mathcal{F}_L = \langle \text{GHZ}_L | \rho | \text{GHZ}_L \rangle = \frac{1}{2}\left(1 + \prod_{k=1}^{L}\Lambda^{w_k}\right)$$
+
+$$\text{Tr}(\rho^2) = \frac{1}{2} + \frac{1}{2}\left(\prod_{k=1}^{L}\Lambda^{w_k}\right)^2$$
+
+* Evaluates exact metrics for $L = 50, 100, 1000$ links in under $1\,\text{ms}$.
 
 ---
 
